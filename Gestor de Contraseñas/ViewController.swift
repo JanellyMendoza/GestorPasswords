@@ -7,7 +7,6 @@ import UIKit
 
 
 class ViewController: UIViewController {
-    
     var viewModel: ViewControllerModel!
     
     let dataBase = DataBase.shared
@@ -69,46 +68,66 @@ class ViewController: UIViewController {
         searchButton.backgroundColor = .systemPink
         return searchButton
     }()
+    
+    var collection: UICollectionView = {
+        var layot = UICollectionViewFlowLayout()
+        layot.scrollDirection = .vertical
+        layot.minimumLineSpacing = 1
+        layot.minimumInteritemSpacing = 1
+        layot.scrollDirection = .vertical
+        var collection = UICollectionView(frame: .zero, collectionViewLayout: layot)
+        collection.backgroundColor = .black
+        return collection
+    }()
+    
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .systemMint
+        view.backgroundColor = .black
         initUI()
+
         savePasswordButton.addTarget(self, action: #selector(savePassword), for: .touchUpInside)
         generateNewPasswordButton.addTarget(self, action: #selector(generateNewPassword), for: .touchUpInside)
         deletePasswordButton.addTarget(self, action: #selector(deletePasswordSaved), for: .touchUpInside)
-        //searchPasswordButton.addTarget(self, action: #selector(searchSavedPassword), for: .touchUpInside)
+        searchPasswordButton.addTarget(self, action: #selector(searchSavedPasswords), for: .touchUpInside)
     }
     
     func initUI(){
+        
+        collection.delegate = self
+        collection.dataSource = self
+        collection.register(MyCell.self, forCellWithReuseIdentifier: "Cell")
         view.addSubview(labelTitle)
-        labelTitle.addAnchors(left: 20, top: 50, right: 20, bottom: nil)
+        labelTitle.addAnchors(left: 20, top: 70, right: 20, bottom: nil)
         
         view.addSubview(siteName)
-        siteName.addAnchors(left: 20, top: 100, right: 20, bottom: nil)
+        siteName.addAnchors(left: 20, top: 10, right: 20, bottom: nil, withAnchor: .top, relativeToView: labelTitle)
         
         view.addSubview(nameUser)
-        nameUser.addAnchors(left: 20, top: 150, right: 20, bottom: nil)
+        nameUser.addAnchors(left: 20, top: 10, right: 20, bottom: nil, withAnchor: .top, relativeToView: siteName)
         
         view.addSubview(password)
-        password.addAnchors(left: 20, top: 200, right: 20, bottom: nil)
+        password.addAnchors(left: 20, top: 10, right: 20, bottom: nil, withAnchor: .top, relativeToView: nameUser)
         
         view.addSubview(savePasswordButton)
-        savePasswordButton.addAnchors(left: 20, top: 300, right: 20, bottom: nil)
+        savePasswordButton.addAnchors(left: 20, top: 20, right: 20, bottom: nil, withAnchor: .top, relativeToView: password)
         
         view.addSubview(generateNewPasswordButton)
-        generateNewPasswordButton.addAnchors(left: 20, top: 350, right: 20, bottom: nil)
+        generateNewPasswordButton.addAnchors(left: 20, top: 20, right: 20, bottom: nil, withAnchor: .top, relativeToView: savePasswordButton)
         
         view.addSubview(deletePasswordButton)
-        deletePasswordButton.addAnchors(left: 20, top: 400, right: 20, bottom: nil)
+        deletePasswordButton.addAnchors(left: 20, top: 20, right: 20, bottom: nil, withAnchor: .top, relativeToView: generateNewPasswordButton)
         
         view.addSubview(searchPasswordButton)
-        searchPasswordButton.addAnchors(left: 20, top: 450, right: 20, bottom: nil)
+        searchPasswordButton.addAnchors(left: 20, top: 20, right: 20, bottom: nil, withAnchor: .top, relativeToView: deletePasswordButton)
+        view.addSubview(collection)
+        collection.addAnchorsAndSize(width: 10, height: height, left: 5, top: 20, right: 5, bottom: nil, withAnchor: .top, relativeToView:  searchPasswordButton)
     }
     
     @objc func savePassword() {
-        guard let website = siteName.text, !website.isEmpty,
-              let username = nameUser.text, !username.isEmpty,
-              let password = password.text, !password.isEmpty else {
+        guard let website = siteName.text?.lowercased(), !website.isEmpty,
+              let username = nameUser.text?.lowercased(), !username.isEmpty,
+              let password = password.text?.lowercased(), !password.isEmpty else {
             
             return
         }
@@ -125,6 +144,7 @@ class ViewController: UIViewController {
         print("the generated password is \(newPassword)")
     }
     @objc func deletePasswordSaved(){
+        // acomoodarlo de manera que se pueda ver que credencial eliminar
         guard let savePasswordEntry = dataBase.getPasswords().last else{
             print("no se pudo eliminar porque no existe")
             return
@@ -135,25 +155,35 @@ class ViewController: UIViewController {
         password.text = ""
         print("it has been deleted")
     }
-        /*@objc func searchSavedPassword(){
+    @objc func searchSavedPasswords(){
         let savedPasswords = dataBase.getPasswords()
         
-        //tus contrasenas son
-        let holaaPasswords = UIAlertAction(title: "Saved passwords", style: .destructive){ _ in
-           
-            
-            if password in savedPasswords {
-                let siteName = password.site
-            }
         
-        
+         return
+         
+         
+         print(savedPasswords)
+         
+         }
+         
     }
-    func alerta(titulo : String, mensaje : String, actions : [UIAlertAction]){
-      let alert = UIAlertController(title: titulo, message: mensaje, preferredStyle: .alert)
-      for action in actions {
-        alert.addAction(action)
-      }
-      present(alert, animated:  true)
-      
-    }*/
+
+extension ViewController: UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, UICollectionViewDataSource{
+    
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return 3
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "Cell", for: indexPath) as! MyCell
+        //llamarla aqui una vez hecha para mostrar las credenciales
+        //mandar a llamar a la celda para q muestre
+       
+        
+        return cell
+    }
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        
+        return CGSize(width: width / 1, height: 100)
+    }
 }
